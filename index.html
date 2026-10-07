@@ -363,7 +363,7 @@ function sha256(str){
 }
 function codeHash(s){let h=sha256("dfk|"+s);for(let i=0;i<3000;i++)h=sha256(h+"|dfk");return h}
 function normCode(s){return s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9ñ ]+/g,"").replace(/\s+/g," ").trim()}
-const CODES={"5207ea0d3c8bf65fb94e2a610d6f0e1d30a9d13ccb12bd11e31c160cf45ef8bc":"admin","1cf1d3c2c3221b5e2624ee8070d9ffdde4f373a0e7b38adfad84ec41a81c94f1":"sub221"};
+const CODES={"5207ea0d3c8bf65fb94e2a610d6f0e1d30a9d13ccb12bd11e31c160cf45ef8bc":"admin","39a494eda783871efc2bb111e208efcd036707d20ae66ffd228134e9c877c0d1":"sub221"};
 
 /* ================= personajes ================= */
 const CHARS={
@@ -436,7 +436,7 @@ function drawActor(c,ch,x,y,h,face,an,T,beatK,o){
     if(o.win)n=animAt(A.win,T,4,true);else if(o.lose)n=animAt(A.lose,since||T,5,false);
     else if(pose==="miss")n=(A.miss[an.dir]||A.miss.down)[0];
     else if(pose!=="idle")n=o.holding&&since>.3?animAt(A[pose].slice(-2),since,6,true):animAt(A[pose],since,14,false);
-    else if(o.corrupt){n=animAt(A.corrupt,T,4,true);glitchy=true}
+    else if(o.corrupt){n=animAt(A.idle,bt,10,false);glitchy=true}
     else if(o.hurt)n=A.hurt[0];else if(o.point)n=A.point[0];else n=animAt(A.idle,bt,10,false);
   }else if(ch.spr==="dk"){
     const form=o.form||ch.form||"base";
@@ -444,7 +444,7 @@ function drawActor(c,ch,x,y,h,face,an,T,beatK,o){
     else if(form==="base"){
       lean=false;
       if(pose==="miss")n=A.miss.down[0];
-      else if(pose!=="idle")n=an.atk&&A.atk[pose]?animAt(A.atk[pose],since,9,false):animAt(A[pose],since,14,false);
+      else if(pose!=="idle")n=animAt(A[pose],since,14,false);
       else if(o.taunt)n=animAt(A.laugh,T,6,true);else if(o.point)n=animAt(A.point,T,3,true);else if(o.think)n=animAt(A.think,T,1.5,true);
       else n=animAt(A.idle,bt,10,false);
     }else{n=animAt(A[form],T,form==="exe"?10:7,true);glitchy=form==="exe"}
@@ -1175,7 +1175,6 @@ function buildStage(id){
     if(im.naturalWidth){const k=Math.max(W/im.naturalWidth,H/im.naturalHeight);x.imageSmoothingEnabled=true;x.drawImage(im,(W-im.naturalWidth*k)/2,(H-im.naturalHeight*k)/2,im.naturalWidth*k,im.naturalHeight*k)}
     x.fillStyle="rgba(7,2,15,.38)";x.fillRect(0,0,W,H);
     x.imageSmoothingEnabled=false;const u=Math.min(W,H)*.2;
-    blitFrame(x,"rx_pix_1",W*.08,H*.99,u/90);blitFrame(x,"rx_pix_0",W*.95,H*.97,u/100);blitFrame(x,"rx_crys_0",W*.5,H*1.01,u/150);
   }else if(id==="storm"){
     const gr=x.createLinearGradient(0,0,0,H);gr.addColorStop(0,"#02040f");gr.addColorStop(.6,"#0d1a4a");gr.addColorStop(1,"#03081c");x.fillStyle=gr;x.fillRect(0,0,W,H);
     for(let i=0;i<7;i++){const cx=rng()*W,cy=rng()*H*.35,r2=80+rng()*200;const g2=x.createRadialGradient(cx,cy,0,cx,cy,r2);g2.addColorStop(0,"rgba(60,80,140,.35)");g2.addColorStop(1,"rgba(0,0,0,0)");x.fillStyle=g2;x.fillRect(cx-r2,cy-r2,r2*2,r2*2)}
@@ -1183,7 +1182,6 @@ function buildStage(id){
       const g2=x.createLinearGradient(cx,base-ch,cx+cw,base);g2.addColorStop(0,"rgba(200,230,255,.75)");g2.addColorStop(1,"rgba(60,120,255,.12)");x.fillStyle=g2;
       x.beginPath();x.moveTo(cx-cw/2,base);x.lineTo(cx+tilt,base-ch);x.lineTo(cx+cw/2,base);x.closePath();x.fill();x.strokeStyle="rgba(180,220,255,.4)";x.stroke()}
     floor("#7fd8ff",.35);
-    if(sprReady()){x.imageSmoothingEnabled=false;const u=Math.min(W,H)*.22;blitFrame(x,"rx_crys_0",W*.06,hz+H*.07,u/110);blitFrame(x,"rx_crys_0",W*.96,hz+H*.06,u/130)}
   }else if(id==="throne"||id==="throne2"){
     const im=RAWIMG.cover.naturalWidth?RAWIMG.cover:RAWIMG.dk_poster;x.fillStyle="#07020f";x.fillRect(0,0,W,H);
     if(im.naturalWidth){x.filter="blur(3px)";const k=Math.max(W/im.naturalWidth,H/im.naturalHeight);x.imageSmoothingEnabled=true;x.drawImage(im,(W-im.naturalWidth*k)/2,(H-im.naturalHeight*k)/2,im.naturalWidth*k,im.naturalHeight*k);x.filter="none"}
@@ -1197,7 +1195,6 @@ function buildStage(id){
     x.imageSmoothingEnabled=false;const ch=Math.min(H*.42,W*.36);
     if(W>=700){x.globalAlpha=.85;blitFrame(x,"dk_vl_0",W*.12,H*.98,ch/SPR.dk_idle_0[3]*.8);blitFrame(x,"rx_idle_0",W*.88,H*.98,ch/SPR.rx_idle_0[3]);x.globalAlpha=1}
   }else{x.fillStyle="#07020f";x.fillRect(0,0,W,H)}
-  if(id==="crystal"&&sprReady()){x.imageSmoothingEnabled=false;const u=Math.min(W,H)*.22;blitFrame(x,"rx_crys_0",W*.07,hz+H*.06,u/120);blitFrame(x,"rx_crys_0",W*.95,hz+H*.05,u/140)}
   return c;
 }
 function stageOverlay(id,T,r){
@@ -1209,9 +1206,6 @@ function stageOverlay(id,T,r){
     const bx=W*(.1+hash(b*3.1)*.8);g.save();g.globalAlpha=k;g.strokeStyle=id==="storm"?"#cfe6ff":"#ff2e7e";g.lineWidth=3;g.shadowColor=g.strokeStyle;g.shadowBlur=16;g.beginPath();g.moveTo(bx,0);let y=0,xx=bx;
     while(y<H*.62){y+=H*.06;xx+=(hash(y+b)-.5)*W*.07;g.lineTo(xx,y)}g.stroke();g.globalAlpha=k*.12;g.fillStyle=g.strokeStyle;g.fillRect(0,0,W,H);g.restore()}}}
   else if(id==="neonvoid"&&r){const k=r.beatT?Math.max(0,1-(T-r.beatT)*4):0;g.fillStyle=`rgba(255,30,80,${.08*k})`;g.fillRect(0,0,W,H)}
-  if(r&&r.beatT>0&&(id==="void"||id==="neonvoid"||id==="glitch"||id.startsWith("rxexe")||id.startsWith("throne"))&&sprReady()){
-    const k=1-(T-r.beatT)*3.5;if(k>0&&r.lastBeat%2===0){const hb=hash(r.lastBeat*3.7),fx=["dk_fx_0","dk_fx_1","dk_fx_2"][Math.floor(hb*3)];
-      g.save();g.globalAlpha=k*.7;g.globalCompositeOperation="lighter";blitCenter(g,fx,W*(.1+hb*.8),H*(.12+hash(hb*9)*.3),Math.min(W,H)*.16,id==="glitch"?"#2dff6e":id==="neonvoid"||id.startsWith("rxexe")?"#ff2e7e":null);g.restore()}}
 }
 
 const LANE_COL=["#c04bff","#00e1ff","#2dff6e","#ff3b5c"];
@@ -1399,7 +1393,7 @@ function drawHUD(r,L,now,T){
   const beatK=r.beatT?Math.max(0,1-(T-r.beatT)*5):0,isz=(W<500?40:48)*(1+beatK*.15);
   drawIcon(CHARS[r.S.enemy],split-isz*.45,barY,isz,hp>.8);drawIcon(PC(),split+isz*.45,barY,isz,hp<.2);
   if(r.x){const by=barY+(flip>.5?22:-22)*0+0;
-    for(let i=0;i<3;i++){g.globalAlpha=i<r.shield?1:.22;blitCenter(g,"rx_pix_0",bx-18-i*22,barY,22);g.globalAlpha=1}
+    for(let i=0;i<3;i++){g.globalAlpha=i<r.shield?1:.22;blitCenter(g,"or_spec_0",bx-18-i*22,barY,22);g.globalAlpha=1}
     const cw=Math.min(150,bw*.3),cx2=bx+bw+14,cy2=barY-5;g.fillStyle="#000";g.fillRect(cx2-2,cy2-2,cw+4,14);
     const cg=g.createLinearGradient(cx2,0,cx2+cw,0);cg.addColorStop(0,"#a23cff");cg.addColorStop(1,"#ff2e4e");g.fillStyle=cg;g.fillRect(cx2,cy2,cw*r.corr/100,10);
     if(W>=560){g.font=`700 11px "Chakra Petch",sans-serif`;g.textAlign="left";g.fillStyle="#f4edff";g.fillText("CORRUPCIÓN "+Math.round(r.corr)+"%",cx2,cy2-8);g.textAlign="center"}}
@@ -1621,7 +1615,7 @@ const GUIDE=[
  {eye:"Fases secretas",title:"Lo que está escondido",art:["dk_vl_0","rx_exe_3","dk_idle_0"],body:`<ul><li><b>Neon Void</b>: gana la Fase Final.</li><li><b>RedX.exe</b>: gana Neon Void.</li><li><b>Eco Olvidado</b>: termina cualquier canción sin fallar ninguna nota.</li><li><b>Gracias Sub 221</b>: canción exclusiva que se abre con un código secreto en la pantalla Códigos.</li></ul>`},
  {eye:"Nuevo · Semana Extrema",title:"El Trono Corrupto",art:["dk_od_0","dk_vl_0"],body:`<p class="small">Se desbloquea al terminar el modo historia de la Semana 1.</p><ul><li><b>Sobrecarga</b> (185 BPM): Overdrive en una tormenta de cristales con rayos. Notas dobles y acelerones.</li><li><b>El Rey de la Corrupción</b> (210 BPM): Dark Funky con su corona, en la ciudad flotante. A mitad de canción cambia a su forma final y tu vida empieza a bajar sola.</li></ul>`},
  {eye:"Nuevo · Dificultad",title:"Extremo",art:["or_big_0","or_big_1","or_big_2","or_big_3"],body:`<p class="small">La dificultad Extremo hace que las flechas vayan un 40% más rápido que en Difícil, y el rival te quita el doble de vida cuando canta. La ventana para acertar es la misma: es más difícil, pero no injusto.</p><p class="small">Elígela en Modo historia o Juego libre. Si te cuesta, prueba antes el modo Práctica.</p>`},
- {eye:"Nuevo · Las 7 mejoras",title:"Qué cambia en Extremo",art:["or_spec_2","or_spec_3","or_spec_0","rx_pix_0"],body:`<ul><li><b>1. Notas dobles</b>: dos flechas a la vez al final de las frases.</li><li><b>2. Notas calavera</b>: ¡no las toques! Si las pulsas pierdes vida.</li><li><b>3. Notas de cristal</b>: obligatorias. Si fallas una pierdes un cuarto de la vida.</li><li><b>4. Escudo de cristal</b>: algunas notas te dan un escudo que perdona un fallo (hasta 3).</li><li><b>5. Acelerones</b>: la pista va más rápido unos compases, con aviso.</li><li><b>6. Medidor de corrupción</b>: cada fallo lo sube y la pantalla se distorsiona; acertar seguido lo baja.</li><li><b>7. Extras</b>: pista centrada, opción para quitar parpadeos, 10 logros, galería y ranking.</li></ul>`},
+ {eye:"Nuevo · Las 7 mejoras",title:"Qué cambia en Extremo",art:["or_spec_2","or_spec_3","or_spec_0"],body:`<ul><li><b>1. Notas dobles</b>: dos flechas a la vez al final de las frases.</li><li><b>2. Notas calavera</b>: ¡no las toques! Si las pulsas pierdes vida.</li><li><b>3. Notas de cristal</b>: obligatorias. Si fallas una pierdes un cuarto de la vida.</li><li><b>4. Escudo de cristal</b>: algunas notas te dan un escudo que perdona un fallo (hasta 3).</li><li><b>5. Acelerones</b>: la pista va más rápido unos compases, con aviso.</li><li><b>6. Medidor de corrupción</b>: cada fallo lo sube y la pantalla se distorsiona; acertar seguido lo baja.</li><li><b>7. Extras</b>: pista centrada, opción para quitar parpadeos, 10 logros, galería y ranking.</li></ul>`},
  {eye:"Personajes",title:"¿Con quién juegas?",art:["rx_idle_0","ru_idle_0"],body:`<ul><li><b>Red X</b>: el protagonista pelirrojo.</li><li><b>Rumi</b>: nueva jugadora. Si la corrupción sube mucho en Extremo, ella también se corrompe.</li><li><b>Boyfriend</b> y <b>Bit</b>: los clásicos.</li></ul><p class="small">Tus puntos se guardan con tu nombre en el Ranking. Míralo desde el menú.</p>`}
 ];
 let gi=0,guideBack="#scrMain";
@@ -1667,7 +1661,7 @@ $("#btnRank").onclick=openRank;
 
 /* ================= logros y galería ================= */
 const GAL=[["Red X","rx_idle_0"],["Rumi","ru_idle_0"],["Dark Funkin","dk_idle_0"],["Overdrive","dk_od_0"],["Dark Funkin.EXE","dk_exe_0"],["Void Lord","dk_vl_0"],
- ["RedX.exe","rx_exe_3",()=>isUnlocked("redxexe")],["Rumi corrupta","ru_atk_0",()=>PROG.ach.includes("corrupt")],["El Rey","cover",()=>PROG.ach.includes("xweek")]];
+ ["RedX.exe","rx_exe_3",()=>isUnlocked("redxexe")],["El Rey","cover",()=>PROG.ach.includes("xweek")]];
 function openGal(){
   $("#achCount").textContent=`${PROG.ach.length} de ${ACH.length} logros conseguidos`;
   $("#achList").innerHTML=ACH.map(a=>`<div class="ach${PROG.ach.includes(a[0])?" on":""}"><span style="font-size:20px">${PROG.ach.includes(a[0])?"🏆":"🔒"}</span><div><b>${a[1]}</b><span>${a[2]}</span></div></div>`).join("");
