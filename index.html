@@ -1122,8 +1122,73 @@ function storyNext(){
 }
 
 /* ================= diálogos ================= */
+const PLINES={
+ redx:{
+  despertar:["¿Tu ritmo? Por favor. Mis flechas arden más que cualquier corrupción.","Sube el volumen, Dark Funkin. Te voy a dar una lección."],
+  glitch:["¿Error 404? El único error aquí es retarme a mí.","Tiembla todo lo que quieras. Yo no fallo."],
+  cristal:["El cristal se rompe. El fuego no.","Que desaparezcan tus flechas. Mis reflejos las encuentran igual."],
+  fasefinal:["¿El ritmo antes de las canciones? Pues yo soy el ritmo que viene después.","Vamos a terminar con esto. Una nota cada vez."],
+  fasefinal_end:["Te dije que mis flechas ardían. Vuelve cuando aprendas a bailar."],
+  neonvoid:["¿Forma verdadera? A mí me da igual cuántas formas tengas."],
+  eco:["Ni una nota perdida. Así se toca, eco."],
+  sub221:["¡221! ¡Esto merece un solo de fuego!"],
+  redxexe:["¿Tú eres yo? Entonces sabes que nunca me rindo.","Vamos a ver qué versión de Red X canta mejor."],
+  sobrecarga:["¿Vas a estallar? Perfecto, yo también voy a tope."],
+  rey:["Bonita corona. Lástima que te la vaya a quitar.","Este trono huele a ritmo robado. Hoy lo devuelvo."],
+  rey_end:["El ritmo es de todos, Rey. Siempre lo fue."],
+  sub326:["¡326! ¡Que suene fuerte, que hoy no se apaga nadie!"]},
+ rumi:{
+  despertar:["¡Hola, Dark Funkin! ¿Bailamos? Te aviso que no me rindo nunca.","¡Uno, dos, tres... a por todas!"],
+  glitch:["¡Qué flechas más nerviosas! No pasa nada, yo me sé calmar.","¡Vamos, Rumi, concéntrate!"],
+  cristal:["¡Qué bonito brilla todo! Pero no me vas a congelar el ritmo."],
+  fasefinal:["Das un poquito de miedo, la verdad... ¡pero mis amigos cuentan conmigo!","¡Vamos a devolverle la música al barrio!"],
+  fasefinal_end:["¡Lo conseguimos! ¡El barrio vuelve a bailar!"],
+  neonvoid:["Aunque todo esté oscuro, yo traigo mi propia luz."],
+  eco:["Hola, notas olvidadas. Hoy os voy a cantar a todas."],
+  sub221:["¡221! ¡Gracias, gracias, gracias! ¡A bailar todos!"],
+  redxexe:["¿Red X? No... tú no eres él. ¡Devuélvele su ritmo!"],
+  sobrecarga:["¡Cuidado con las calaveras! Y los cristales... ¡no los dejo escapar!"],
+  rey:["No me asusta tu corona. Me asusta más quedarme sin cantar.","¡Por todos los que perdieron su canción!"],
+  rey_end:["¿Ves? Cantar juntos es mucho mejor que mandar."],
+  sub326:["¡326 amigos! ¡Esto es la mejor fiesta del mundo!"]},
+ bf:{
+  despertar:["¡Bip bop!"],glitch:["¡Skidi bap!"],cristal:["¡Bep!"],fasefinal:["¡Bip... bop!"],fasefinal_end:["¡Bip!"],
+  neonvoid:["¡Bip bop!"],eco:["¿Bip?"],sub221:["¡Bip bop! ¡Bip!"],redxexe:["¡Beep!"],sobrecarga:["¡Bip bop! ¡Skidi!"],
+  rey:["¡Bap!"],rey_end:["¡Bip bop!"],sub326:["¡Bip bop! ¡Bip bop!"]},
+ bit:{
+  despertar:["¡Partida nueva! Jugador 1 listo. Pulsa start, Dark Funkin.","Te aviso: tengo récord en todas las máquinas del barrio."],
+  glitch:["¿Lag? ¿Bugs? Nada que un buen parche no arregle.","Modo concentración: activado."],
+  cristal:["Flechas invisibles... vale, nivel secreto detectado."],
+  fasefinal:["Jefe final a la vista. Guardando partida... ¡vamos!"],
+  fasefinal_end:["¡Jefe derrotado! ¡Logro desbloqueado!"],
+  neonvoid:["¿Una fase secreta? ¡Sabía que había algo después de los créditos!"],
+  eco:["Puntuación perfecta... por eso apareces, ¿no?"],
+  sub221:["¡221 jugadores conectados! ¡Partida multijugador!"],
+  redxexe:["Archivo corrupto detectado. Iniciando reparación."],
+  sobrecarga:["¡Velocidad x2! Mis dedos ya están calentando."],
+  rey:["Último nivel. Sin vidas extra. Como a mí me gusta."],
+  rey_end:["¡Fin del juego! Pon tu nombre en el ranking, Rey: segundo puesto."],
+  sub326:["¡326! ¡Nuevo récord de jugadores!"]},
+ dfk:{
+  despertar:["¿Retarme a mí? Yo inventé este ritmo, copia barata.","Mira y aprende cómo se canta de verdad."],
+  glitch:["Qué glitch más simpático. Yo era así de pequeño."],
+  cristal:["Cristal, ¿eh? Yo lo rompo con una sola nota."],
+  fasefinal:["¿Void Lord? Esa forma ya me queda pequeña.","Veamos quién es el verdadero dueño de la oscuridad."],
+  fasefinal_end:["Je, je... la corona sigue siendo mía."],
+  neonvoid:["Rojo, morado... da igual el color. La corrupción soy yo."],
+  eco:["Notas olvidadas... yo nunca olvido una nota."],
+  sub221:["Bueno... por los 221, hoy dejo la corrupción para otro día."],
+  redxexe:["¿Otro Red X corrupto? Aficionados."],
+  sobrecarga:["¿Me robas mi poder? Te va a quemar."],
+  rey:["¿Un rey falso en mi trono? Esto va a ser divertido.","Solo puede haber un Dark Funky."],
+  rey_end:["Ahora sí. El trono, la corona y el ritmo: todo mío."],
+  sub326:["326 súbditos... digo, ¡amigos! ¡Que empiece la fiesta!"]}
+};
+function styleLines(def,lines){const tbl=PLINES[PCK()];if(!tbl||!def||!def.id)return lines;const v=tbl[def.id+(lines===def.end?"_end":"")];if(!v)return lines;
+  let used=false;const out=[];for(const L of lines){if(L[0]==="p"&&!used){used=true;v.forEach(t=>out.push(["p",t]))}else out.push(L)}if(!used)v.forEach(t=>out.push(["p",t]));return out}
 let dlg=null;
 function runDialogue(def,lines,done){
+  lines=styleLines(def,lines);
   state="dialog";hideAll();$("#pauseBtn").hidden=true;stopRun();
   dlg={def,lines,i:0,shown:0,t0:performance.now()/1000,done};
   $("#dlg").hidden=false;showLine();
