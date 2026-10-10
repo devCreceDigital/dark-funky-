@@ -118,6 +118,7 @@ input[type=text]{font-family:var(--f-ui);font-size:20px;letter-spacing:.08em;pad
       </div>
       <div class="row">
         <button id="btnOpts">Opciones</button>
+        <button id="btnTut">Tutorial</button>
         <button id="btnHelp">Cómo jugar</button>
         <button id="btnAdmin" hidden>Admin</button>
       </div>
@@ -345,7 +346,7 @@ if(!store.get("v3",0)){OPT.player="redx";saveOpts();store.set("v3",1)}
 const SPEED_LOCK=4.8;if(!store.get("v4",0)){OPT.speed=SPEED_LOCK;saveOpts();store.set("v4",1)}
 const PROG=Object.assign({unlocked:[],admin:false,best:{},story:null,ach:[],scores:[],name:"",players:[],guideSeen:false,xweek:false},store.get("prog",{}));
 const saveProg=()=>store.set("prog",PROG);
-const SPD=()=>PROG.admin?OPT.speed:SPEED_LOCK;
+const SPD=()=>PROG.admin?OPT.speed:(run&&run.tut?1:SPEED_LOCK);
 if(!PROG.dfk&&Object.keys(PROG.best||{}).some(k=>k.startsWith("week|"))){PROG.dfk=true;saveProg()}
 
 /* ================= SHA-256 (los códigos nunca están en texto plano) ================= */
@@ -714,6 +715,12 @@ SONGDEFS.push({id:"sub326",title:"Gracias 326 Subs",enemy:"party",stage:"party32
   form:[{m:"A",who:"opp",banner:["GRACIAS 326 SUBS","canción exclusiva"]},{m:"A",who:"ply"},{m:"B",who:"opp"},{m:"B",who:"ply"},{brk:1,banner:["¡FIESTA!","¡326 en la familia!"]},{m:"C",who:"opp",drums:"drive"},{m:"C",who:"ply",drums:"drive"},{m:"D",who:"duet",banner:["¡326 SUBS!","gracias por todo"]}],
   dlg:[["e","¡Otra fiesta! ¡Ya somos 326 en la familia!"],["e","Gracias por cada partida, cada like y cada comentario. Sin vosotros no habría ritmo."],["p","¡Bip bop! ¡Bip bop!"],["e","¡Esta canción es para vosotros! ¡A bailar!"]],
   over:"¡Venga, otra vez, que hay que celebrar los 326!"});
+SONGDEFS.unshift({id:"tutorial",title:"Tutorial",enemy:"funky",stage:"street",skin:"crystal",arw:"norm",bpm:100,key:60,scale:"major",prog:[0,3,4,0],seed:5,lead:"square",drums:"full",
+  motifs:{A:{d:1},B:{d:1,shift:2},C:{d:1,shift:4}},
+  form:[{m:"A",who:"opp",banner:["MIRA AL RIVAL","él canta primero"]},{m:"A",who:"ply",banner:["¡TU TURNO!","pulsa cada flecha cuando llegue arriba"]},{m:"B",who:"opp",banner:["NOTAS LARGAS","si tiene cola, mantén pulsado"]},{m:"B",who:"ply"},{m:"C",who:"duet",banner:["¡JUNTOS!","ya sabes jugar"]}],
+  dlg:[["e","¡Eh, {P}! Antes de corromper el barrio te voy a enseñar a cantar. Ganar sin rival no tiene gracia."],["e","Las flechas suben hacia los receptores de arriba. Pulsa la misma flecha justo cuando llegue: ← ↓ ↑ → o D F J K."],["e","En el móvil, toca la columna de esa flecha en la pantalla."],["e","Si una flecha tiene cola, mantenla pulsada hasta que termine. Tranquilo: en el tutorial no hay Game Over."],["p","..."]],
+  end:[["e","¡Nada mal! Ya estás listo para el modo historia."],["p","..."],["e","Pero la próxima vez no habrá piedad. ¡Nos vemos en Despertar!"]],
+  over:"Otra vez, que esto es solo practicar."});
 const SONGS={};SONGDEFS.forEach(d=>SONGS[d.id]=d);
 SONGS.despertar.arw="norm";SONGS.glitch.arw="corr";SONGS.cristal.arw="crys";SONGS.fasefinal.arw="pulse";SONGS.neonvoid.arw="corr";SONGS.eco.arw="crys";SONGS.sub221.arw="norm";
 const WEEK=["despertar","glitch","cristal","fasefinal"];
@@ -888,15 +895,16 @@ function songNow(){if(!run)return 0;const lat=AC.outputLatency||AC.baseLatency||
 const WIN={sick:.045,good:.09,bad:.135,miss:.166};
 
 function newRun(songId){
+  const tut=songId==="tutorial",dk=tut?"facil":OPT.diff;
   initAudio();if(AC.state==="suspended")AC.resume();
   stopRun();
   const custom=songId==="custom";
   const chaos=hasMod("caos");
-  const fxl=custom?(chaos?2:0):chaos?2:OPT.fx?DIFFS[OPT.diff].fx:0;
-  const r={songId,custom,diff:OPT.diff,paused:false,ei:0,bus:AC.createGain(),score:0,combo:0,maxCombo:0,misses:0,health:50,accSum:0,accN:0,
+  const fxl=custom?(chaos?2:0):chaos?2:tut?0:OPT.fx?DIFFS[dk].fx:0;
+  const r={songId,custom,tut,diff:dk,paused:false,ei:0,bus:AC.createGain(),score:0,combo:0,maxCombo:0,misses:0,health:50,accSum:0,accN:0,
     counts:{sick:0,good:0,bad:0,shit:0,miss:0},hold:[null,null,null,null],pressed:[0,0,0,0],conf:[-9,-9,-9,-9],oconf:[-9,-9,-9,-9],pops:[],
-    opose:{pose:"idle",t0:-9,until:-9},ppose:{pose:"idle",t0:-9,until:-9},fxl,eclipse:0,flip:OPT.down?1:0,bump:0,lastBeat:-1,beatT:-9,banner:null,bannerBar:-1,ended:false,scan:0,oscan:0,holdAcc:0,splash:[-9,-9,-9,-9],missX:[-9,-9,-9,-9],shield:0,corr:0,corrMax:0,skullHits:0,spd:1,x:OPT.diff==="extremo",player:PCK(),taunt:-9,flashT:-9,formed:false,alt:0,
-    bot:hasMod("bot"),practice:hasMod("practica")||(PROG.admin&&OPT.god),god:PROG.admin&&OPT.god,usedBot:hasMod("bot"),lastMs:null};
+    opose:{pose:"idle",t0:-9,until:-9},ppose:{pose:"idle",t0:-9,until:-9},fxl,eclipse:0,flip:OPT.down?1:0,bump:0,lastBeat:-1,beatT:-9,banner:null,bannerBar:-1,ended:false,scan:0,oscan:0,holdAcc:0,splash:[-9,-9,-9,-9],missX:[-9,-9,-9,-9],shield:0,corr:0,corrMax:0,skullHits:0,spd:1,x:dk==="extremo",player:PCK(),taunt:-9,flashT:-9,formed:false,alt:0,
+    bot:hasMod("bot"),practice:tut||hasMod("practica")||(PROG.admin&&OPT.god),god:PROG.admin&&OPT.god,usedBot:hasMod("bot"),lastMs:null};
   r.bus.connect(master);
   r.oppV=AC.createGain();r.oppV.connect(r.bus);r.plyV=AC.createGain();r.plyV.connect(r.bus);r.music=AC.createGain();r.music.connect(r.bus);
   if(custom){
@@ -909,7 +917,7 @@ function newRun(songId){
     for(let k=0;k<4;k++)SYN.tick(r.t0+r.countAt[k],{n:k},r.music);
   }else{
     const S=compile(SONGS[songId]);r.S=S;
-    r.events=buildEvents(S);r.notes=buildChart(S,OPT.diff,fxl,hasMod("espejo"),chaos);r.end=S.end;r.countAt=S.countAt;
+    r.events=buildEvents(S);r.notes=buildChart(S,dk,fxl,hasMod("espejo"),chaos);r.end=S.end;r.countAt=S.countAt;
     if(S.lead==="ghost"){const dl=AC.createDelay(1),fb=AC.createGain(),wet=AC.createGain();dl.delayTime.value=S.SPB*.75;fb.gain.value=.35;wet.gain.value=.4;dl.connect(fb).connect(dl);dl.connect(wet).connect(r.bus);r.delay=dl}
     r.t0=AC.currentTime+.15;
   }
@@ -1076,6 +1084,7 @@ function finish(){
   if(inWeek){ctx.weekScore+=r.score;ctx.weekMiss+=r.misses}
   const last=inWeek&&ctx.weekIdx>=curWeek().songs.length-1;
   $("#btnNextR").hidden=!inWeek;$("#btnNextR").textContent=last?"Ver el final":"Siguiente canción";
+  ctx.tutEnd=!!r.tut&&!inWeek;if(ctx.tutEnd){$("#btnNextR").hidden=false;$("#btnNextR").textContent="Seguir"}
   if(inWeek)note+=(note?" ":"")+`Semana: ${ctx.weekScore} puntos.`;
   $("#resNote").textContent=note;
   setTimeout(()=>{if(run===r)stopRun()},1500);
@@ -1130,6 +1139,7 @@ function storyNext(){
 /* ================= diálogos ================= */
 const PLINES={
  redx:{
+  tutorial:["¿Lecciones? Vale, pero rapidito, que tengo flechas que quemar."],tutorial_end:["Fácil. ¿Cuándo empieza lo difícil?"],
   despertar:["¿Tu ritmo? Por favor. Mis flechas arden más que cualquier corrupción.","Sube el volumen, Dark Funkin. Te voy a dar una lección."],
   glitch:["¿Error 404? El único error aquí es retarme a mí.","Tiembla todo lo que quieras. Yo no fallo."],
   cristal:["El cristal se rompe. El fuego no.","Que desaparezcan tus flechas. Mis reflejos las encuentran igual."],
@@ -1144,6 +1154,7 @@ const PLINES={
   rey_end:["El ritmo es de todos, Rey. Siempre lo fue."],
   sub326:["¡326! ¡Que suene fuerte, que hoy no se apaga nadie!"]},
  rumi:{
+  tutorial:["¡Sí! ¡Me encanta aprender cosas nuevas!"],tutorial_end:["¡Gracias, profe! ¡Ya estoy lista!"],
   despertar:["¡Hola, Dark Funkin! ¿Bailamos? Te aviso que no me rindo nunca.","¡Uno, dos, tres... a por todas!"],
   glitch:["¡Qué flechas más nerviosas! No pasa nada, yo me sé calmar.","¡Vamos, Rumi, concéntrate!"],
   cristal:["¡Qué bonito brilla todo! Pero no me vas a congelar el ritmo."],
@@ -1158,10 +1169,12 @@ const PLINES={
   rey_end:["¿Ves? Cantar juntos es mucho mejor que mandar."],
   sub326:["¡326 amigos! ¡Esto es la mejor fiesta del mundo!"]},
  bf:{
+  tutorial:["¡Bip!"],tutorial_end:["¡Bip bop!"],
   despertar:["¡Bip bop!"],glitch:["¡Skidi bap!"],cristal:["¡Bep!"],fasefinal:["¡Bip... bop!"],fasefinal_end:["¡Bip!"],
   neonvoid:["¡Bip bop!"],eco:["¿Bip?"],sub221:["¡Bip bop! ¡Bip!"],redxexe:["¡Beep!"],sobrecarga:["¡Bip bop! ¡Skidi!"],
   rey:["¡Bap!"],rey_end:["¡Bip bop!"],sub326:["¡Bip bop! ¡Bip bop!"]},
  bit:{
+  tutorial:["Tutorial... yo nunca me lo salto. Bueno, casi nunca."],tutorial_end:["Tutorial completado. ¡Logro desbloqueado!"],
   despertar:["¡Partida nueva! Jugador 1 listo. Pulsa start, Dark Funkin.","Te aviso: tengo récord en todas las máquinas del barrio."],
   glitch:["¿Lag? ¿Bugs? Nada que un buen parche no arregle.","Modo concentración: activado."],
   cristal:["Flechas invisibles... vale, nivel secreto detectado."],
@@ -1176,6 +1189,7 @@ const PLINES={
   rey_end:["¡Fin del juego! Pon tu nombre en el ranking, Rey: segundo puesto."],
   sub326:["¡326! ¡Nuevo récord de jugadores!"]},
  dfk:{
+  tutorial:["¿Un tutorial? Yo no lo necesito... bueno, vale, por si acaso."],tutorial_end:["Ya lo sabía todo. Obviamente."],
   despertar:["¿Retarme a mí? Yo inventé este ritmo, copia barata.","Mira y aprende cómo se canta de verdad."],
   glitch:["Qué glitch más simpático. Yo era así de pequeño."],
   cristal:["Cristal, ¿eh? Yo lo rompo con una sola nota."],
@@ -1192,6 +1206,7 @@ const PLINES={
 };
 function styleLines(def,lines){
   if(PCK()==="dfk"&&def&&def.id&&def.id!=="redxexe"){const end=lines===def.end,dl=PLINES.dfk[def.id+(end?"_end":"")]||["..."];
+    if(def.id==="tutorial")return end?[["e","Vale, ya sabes jugar. ¡Ahora prepárate!"],["p",dl[0]]]:[["e","¿Tú aprendiendo a cantar, Dark Funky? Vale: pulsa cada flecha cuando llegue arriba (← ↓ ↑ → o D F J K)."],["e","Si tiene cola, mantenla pulsada. En el móvil, toca su columna. Aquí no hay Game Over."],["p",dl[0]]];
     if(end)return[["e","¡No puede ser! ¿Me has ganado con mis propias flechas?"],["p",dl[0]]];
     const rl=(PLINES.redx[def.id]||["Vamos allá, Dark Funky."]).map(t=>t.replace(/Dark Funkin/g,"Dark Funky")),out=[];
     for(let i=0;i<Math.max(rl.length,dl.length);i++){if(rl[i])out.push(["e",rl[i]]);if(dl[i])out.push(["p",dl[i]])}return out}
@@ -1658,6 +1673,7 @@ let codesBack="#scrMain";
 function openCodes(from){codesBack=from||"#scrMain";$("#codeMsg").textContent="";$("#codeIn").value="";show("#scrCodes");setTimeout(()=>$("#codeIn").focus(),50)}
 $("#btnCodes").onclick=()=>openCodes("#scrMain");
 $$("[data-codes]").forEach(b=>b.onclick=()=>openCodes("#scrFree"));
+$("#btnTut").onclick=()=>{initAudio();ctx.mode="free";playSong("tutorial",true)};
 $("#btnHelp").onclick=()=>show("#scrHelp");
 $("#btnOpts").onclick=()=>{syncOpts();show("#scrOpts")};
 $("#btnAdmin").onclick=openAdmin;
@@ -1670,7 +1686,7 @@ $("#btnQuitP").onclick=()=>{ctx.mode=ctx.mode==="story"?"main":ctx.mode;toMenu()
 $("#btnRetryO").onclick=()=>startSong(ctx.song);
 $("#btnMenuO").onclick=()=>{if(ctx.mode==="story")ctx.mode="main";toMenu()};
 $("#btnRetryR").onclick=()=>{if(ctx.mode==="story")ctx.weekScore-=0;startSong(ctx.song)};
-$("#btnNextR").onclick=storyNext;
+$("#btnNextR").onclick=()=>{if(ctx.tutEnd){ctx.tutEnd=false;const d=SONGS.tutorial;runDialogue(d,d.end,()=>{ctx.mode="free";state="main";menuStage="menu";stageCache=null;show("#scrMain");refreshAll();toast("¡Tutorial completado! Ahora prueba el <b>Modo historia</b>.")});return}storyNext()};
 $("#btnMenuR").onclick=()=>{if(ctx.mode==="story")ctx.mode="main";toMenu()};
 
 let codeBusy=false;
