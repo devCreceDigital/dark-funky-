@@ -216,7 +216,7 @@ input[type=text]{font-family:var(--f-ui);font-size:20px;letter-spacing:.08em;pad
   <div class="card">
     <h2>Opciones</h2>
     <label class="opt">Tamaño de las flechas <span><input type="range" id="o_size" min="0.8" max="1.35" step="0.05"> <output id="o_size_v"></output></span></label>
-    <label class="opt">Velocidad de las flechas <span><input type="range" id="o_speed" min="0.6" max="1.6" step="0.05"> <output id="o_speed_v"></output></span></label>
+    <label class="opt">Velocidad de las flechas (solo admin) <span><input type="range" id="o_speed" min="0.6" max="4.8" step="0.05"> <output id="o_speed_v"></output></span></label>
     <label class="opt">Retraso del audio (ms) <span><input type="range" id="o_offset" min="-250" max="250" step="5"> <output id="o_offset_v"></output></span></label>
     <label class="opt">Volumen <span><input type="range" id="o_vol" min="0" max="1" step="0.05"> <output id="o_vol_v"></output></span></label>
     <label class="opt">Flechas desde arriba (downscroll) <input type="checkbox" id="o_down"></label>
@@ -342,8 +342,10 @@ const OPT=Object.assign({},DEF,store.get("opts",{}));
 if(!Array.isArray(OPT.mods))OPT.mods=[];
 const saveOpts=()=>store.set("opts",OPT);
 if(!store.get("v3",0)){OPT.player="redx";saveOpts();store.set("v3",1)}
+const SPEED_LOCK=4.8;if(!store.get("v4",0)){OPT.speed=SPEED_LOCK;saveOpts();store.set("v4",1)}
 const PROG=Object.assign({unlocked:[],admin:false,best:{},story:null,ach:[],scores:[],name:"",players:[],guideSeen:false,xweek:false},store.get("prog",{}));
 const saveProg=()=>store.set("prog",PROG);
+const SPD=()=>PROG.admin?OPT.speed:SPEED_LOCK;
 if(!PROG.dfk&&Object.keys(PROG.best||{}).some(k=>k.startsWith("week|"))){PROG.dfk=true;saveProg()}
 
 /* ================= SHA-256 (los códigos nunca están en texto plano) ================= */
@@ -1403,7 +1405,7 @@ function drawArw(set,lane,x,y,size,scale,alpha,tint){if(alpha<=0)return;g.save()
 function drawStrumS(r,L,cx,who,now,T,flip){
   const isP=who==="ply",notes=isP?r.pnotes:r.onotes,sc=isP?1:L.oSc,size=L.size*sc,sp=L.sp*sc,AS=arwSet(r,isP);
   const ry=recY(L,flip),dir=1-2*flip;
-  const pps=450*DIFFS[r.diff].speed*OPT.speed*Math.max(.6,H/720)*(isP?1:L.oSc)*(r.spd||1);
+  const pps=450*DIFFS[r.diff].speed*SPD()*Math.max(.6,H/720)*(isP?1:L.oSc)*(r.spd||1);
   const lx=l=>cx+(l-1.5)*sp;
   g.imageSmoothingEnabled=true;
   for(let l=0;l<4;l++){
@@ -1450,7 +1452,7 @@ function drawStrum(r,L,cx,who,now,T,flip){
   if(sprReady())return drawStrumS(r,L,cx,who,now,T,flip);
   const isP=who==="ply",notes=isP?r.pnotes:r.onotes,sc=isP?1:L.oSc,size=L.size*sc,sp=L.sp*sc;
   const ry=recY(L,flip),dir=1-2*flip,skin=r.S.skin;
-  const pps=450*DIFFS[r.diff].speed*OPT.speed*Math.max(.6,H/720)*(isP?1:L.oSc);
+  const pps=450*DIFFS[r.diff].speed*SPD()*Math.max(.6,H/720)*(isP?1:L.oSc);
   const lx=l=>cx+(l-1.5)*sp;
   for(let l=0;l<4;l++){
     const active=isP?(T-r.conf[l]<.12||(r.hold[l]&&r.hold[l].holding)):(r.oconf[l]>T-.12);
@@ -1698,11 +1700,11 @@ $("#a_reset").onclick=e=>{if(!resetArm){resetArm=true;e.target.textContent="¿Se
 $("#a_exit").onclick=()=>{PROG.admin=false;OPT.god=false;OPT.skip=false;OPT.ms=false;saveProg();saveOpts();refreshAll();show("#scrMain")};
 function syncOpts(){
   const s=(id,v)=>{const el=$(id);if(el.type==="checkbox")el.checked=v;else el.value=v};
-  s("#o_size",OPT.size);s("#o_speed",OPT.speed);s("#o_offset",OPT.offset);s("#o_vol",OPT.vol);s("#o_down",OPT.down);s("#o_fx",OPT.fx);s("#o_dlg",OPT.dlg);s("#o_oppMob",OPT.oppMob);s("#o_middle",OPT.middle);s("#o_flash",OPT.flash);
-  $("#o_size_v").textContent=(+OPT.size).toFixed(2)+"×";$("#o_speed_v").textContent=(+OPT.speed).toFixed(2)+"×";$("#o_offset_v").textContent=OPT.offset;$("#o_vol_v").textContent=Math.round(OPT.vol*100)+"%";
+  s("#o_size",OPT.size);s("#o_speed",SPD());$("#o_speed").disabled=!PROG.admin;s("#o_offset",OPT.offset);s("#o_vol",OPT.vol);s("#o_down",OPT.down);s("#o_fx",OPT.fx);s("#o_dlg",OPT.dlg);s("#o_oppMob",OPT.oppMob);s("#o_middle",OPT.middle);s("#o_flash",OPT.flash);
+  $("#o_size_v").textContent=(+OPT.size).toFixed(2)+"×";$("#o_speed_v").textContent=(+SPD()).toFixed(2)+"×"+(PROG.admin?"":" 🔒");$("#o_offset_v").textContent=OPT.offset;$("#o_vol_v").textContent=Math.round(OPT.vol*100)+"%";
 }
 [["#o_size","size",1],["#o_speed","speed",1],["#o_offset","offset",1],["#o_vol","vol",1],["#o_down","down",0],["#o_fx","fx",0],["#o_dlg","dlg",0],["#o_oppMob","oppMob",0],["#o_middle","middle",0],["#o_flash","flash",0]].forEach(([id,k,num])=>{
-  $(id).addEventListener("input",e=>{OPT[k]=num?+e.target.value:e.target.checked;if(k==="vol"&&master)master.gain.value=OPT.vol;if(k==="size")spriteCache.clear();syncOpts();saveOpts()});
+  $(id).addEventListener("input",e=>{if(k==="speed"&&!PROG.admin){syncOpts();return}OPT[k]=num?+e.target.value:e.target.checked;if(k==="vol"&&master)master.gain.value=OPT.vol;if(k==="size")spriteCache.clear();syncOpts();saveOpts()});
 });
 
 /* ================= nombre del jugador ================= */
